@@ -34,9 +34,21 @@ L2.pack(side=LEFT, anchor=N)
 gui.mainloop()
 
 # open and read specified file
-
+#opens the file and stores the data
+data = [json.loads(line) for line in open(filename, 'r')]
 
 # part 2: views by country/continent 
+
+#part a for countries 
+count = Counter(visitor['visitor_country'] for visitor in data)
+plt.grid(axis='y', alpha=0.75)
+plt.xlabel('country')
+plt.ylabel('Frequency')
+plt.title('Histogram')
+plt.hist(count)
+plt.show() 
+
+#part b for continent
 
 
 # part 3: views by browser
