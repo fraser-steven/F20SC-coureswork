@@ -11,9 +11,11 @@ def openfile():
     print("open file button pressed")
     filename = E1.get()
     if (filename == ""):
+        L2.configure(text="Error... No file name was entered")
         print("Error... No file name was entered")
     else:
-        print(filename)
+        labeltext = "Opening file: "+filename
+        L2.configure(text=labeltext)
 
 from tkinter import *
 gui = Tk()
@@ -24,7 +26,11 @@ E1 = Entry(gui, bd =2)
 E1.pack(fill = X,side=LEFT, anchor=N)
 B = Button(gui, text ="Analyze File", command = openfile)
 B.pack(side=LEFT, anchor=N)
-gui.mainloop()nloop()
+
+L2 = Label(gui, text="")
+L2.pack(side=LEFT, anchor=N)
+
+gui.mainloop()
 
 # open and read specified file
 
