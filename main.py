@@ -19,6 +19,7 @@ def openfile():
 
 from tkinter import *
 gui = Tk()
+gui.title("Document Tracker Data Analyzer")
 gui.geometry("1200x600")
 L1 = Label(gui, text="File Name:")
 L1.pack(side=LEFT, anchor=N)
