@@ -19,12 +19,12 @@ from tkinter import *
 gui = Tk()
 gui.geometry("1200x600")
 L1 = Label(gui, text="File Name:")
-L1.pack()
+L1.pack(side=LEFT, anchor=N)
 E1 = Entry(gui, bd =2)
-E1.pack(fill = X)
+E1.pack(fill = X,side=LEFT, anchor=N)
 B = Button(gui, text ="Analyze File", command = openfile)
-B.pack()
-gui.mainloop()
+B.pack(side=LEFT, anchor=N)
+gui.mainloop()nloop()
 
 # open and read specified file
 
