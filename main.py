@@ -22,7 +22,7 @@ L1 = Label(gui, text="File Name:")
 L1.pack()
 E1 = Entry(gui, bd =2)
 E1.pack(fill = X)
-B = Button(gui, text ="Analyse File", command = openfile)
+B = Button(gui, text ="Analyze File", command = openfile)
 B.pack()
 gui.mainloop()
 
