@@ -4,6 +4,8 @@
 
 # Fraser Steven (fs65)
 # Tegan Friedenthal (tf50)
+from collections import Counter
+import matplotlib.pyplot as plt
 
 # part 7: GUI using tkinter
 filename = ""
