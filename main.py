@@ -7,6 +7,7 @@
 import json
 from collections import Counter
 import matplotlib.pyplot as plt
+import pycountry_convert as pc
 
 # part 7: GUI using tkinter
 filename = ""
@@ -52,7 +53,22 @@ plt.hist(count)
 plt.show() 
 
 #part b for continent
-
+continents = []
+for i in count:
+	try:
+		count
+		country_code = (i)
+		r = pc.country_alpha2_to_continent_code(country_code)
+		continents.append(r)
+	except Exception:
+		pass
+output = Counter(continents)
+plt.grid(axis='y', alpha=0.75)
+plt.xlabel('continent')
+plt.ylabel('Frequency')
+plt.title('Histogram')
+plt.hist(output)
+plt.show()
 
 # part 3: views by browser
 
