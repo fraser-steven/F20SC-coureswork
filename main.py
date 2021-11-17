@@ -70,8 +70,31 @@ def show_views_by_browser_b(data):
 
 # ------------part 4: reader profiles------------
 def show_reader_profile_info(data):
-    print("TO DO")
-
+    
+    
+    visitors = [i['visitor_uuid'] for i in data]
+    #list of visitor uuids
+    visitors_2 = list(set(visitors))
+    #create a dictionary of the uudis with empty values
+    visitor_times = dict([(key, []) for key in visitors_2])
+    time = 0
+    for key in visitor_times:
+        for x in data:
+            if key == x['visitor_uuid']:
+                try:
+                    #set the time viewing documents 
+                    time = x['event_readtime']
+                    #set the value of the matching key to the time
+                    visitor_times[key] = time
+                    #if there is not a event_readtime for the visitor then handle it
+                except Exception:
+                    pass
+    #sort to have longest reading time to shortest
+    sort = sorted(visitor_times, key=lambda kv: kv[1], reverse=True)
+    #get the top 10 visitors who spend the longest reading
+    top10 = list(sort)[:10]
+    print(top10)
+    
 # ------------part 5: also likes functionnality------------
 def also_likes(data):
     print("TO DO")
