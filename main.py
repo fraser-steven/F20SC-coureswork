@@ -17,9 +17,9 @@ from tkinter import *
 def show_views_by_country_hist(data):
     count = Counter(visitor['visitor_country'] for visitor in data)
     plt.grid(axis='y', alpha=0.75)
-    plt.xlabel('country')
+    plt.xlabel('Country')
     plt.ylabel('Frequency')
-    plt.title('Histogram')
+    plt.title('Histogram Showing Views by Country')
     plt.hist(count)
     plt.show() 
 
@@ -37,15 +37,36 @@ def show_views_by_continent_hist(data):
             pass
     output = Counter(continents)
     plt.grid(axis='y', alpha=0.75)
-    plt.xlabel('continent')
+    plt.xlabel('Continent')
     plt.ylabel('Frequency')
-    plt.title('Histogram')
+    plt.title('Histogram Showing Views by Continent')
     plt.hist(output)
     plt.show()
 
 # ------------part 3: views by browser------------
-def show_views_by_browser(data):
-    print("TO DO")
+# part a but we dont use this
+def show_views_by_browser_a(data):
+    count = Counter(visitor['visitor_useragent'] for visitor in data)
+    plt.grid(axis='y', alpha=0.75)
+    plt.xlabel('Browser')
+    plt.ylabel('Frequency')
+    plt.title('Histogram Showing Views by Browser')
+    plt.hist(count)
+    plt.show()
+# part b this is what we actually display
+def show_views_by_browser_b(data):
+    count = Counter(visitor['visitor_useragent'] for visitor in data)
+    browsers = []
+    for i in count:
+        browser = i.split(' ')[0]
+        browsers.append(browser)
+    output = Counter(browsers)
+    plt.grid(axis='y', alpha=0.75)
+    plt.xlabel('Browser')
+    plt.ylabel('Frequency')
+    plt.title('Histogram Showing Views by Browser')
+    plt.hist(output)
+    plt.show()
 
 # ------------part 4: reader profiles------------
 def show_reader_profile_info(data):
@@ -61,19 +82,14 @@ def show_also_likes_graph(data):
 
 # ------------Helper Functions------------
 def make_and_show_buttons(data):
-
     B2 = Button(gui, text ="Show Views by Country Histogram", command=lambda:show_views_by_country_hist(data))
     B2.pack()
-
     B3 = Button(gui, text ="Show Views by Continent Histogram", command=lambda:show_views_by_continent_hist(data))
     B3.pack()
-
-    B4 = Button(gui, text ="Show Views by Browser Histogram", command=lambda:show_views_by_browser(data))
+    B4 = Button(gui, text ="Show Views by Browser Histogram", command=lambda:show_views_by_browser_b(data))
     B4.pack()
-
     B5 = Button(gui, text ="Show Reader Profiles Information", command=lambda:show_reader_profile_info(data))
     B5.pack()
-
     B6 = Button(gui, text ="Show Also Likes Graph", command=lambda:show_also_likes_graph(data))
     B6.pack()
 
@@ -117,3 +133,4 @@ L2.pack()
 L3 = Label(gui, text="")
 L3.pack()
 gui.mainloop()
+
