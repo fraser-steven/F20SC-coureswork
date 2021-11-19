@@ -20,7 +20,7 @@ def show_views_by_country_hist(data):
     plt.xlabel('Country')
     plt.ylabel('Frequency')
     plt.title('Histogram Showing Views by Country')
-    plt.hist(count)
+    plt.bar(count.keys(), count.values())
     plt.show() 
 
 # part b for continent
@@ -40,7 +40,7 @@ def show_views_by_continent_hist(data):
     plt.xlabel('Continent')
     plt.ylabel('Frequency')
     plt.title('Histogram Showing Views by Continent')
-    plt.hist(output)
+    plt.bar(output.keys(), output.values())
     plt.show()
 
 # ------------part 3: views by browser------------
@@ -51,7 +51,7 @@ def show_views_by_browser_a(data):
     plt.xlabel('Browser')
     plt.ylabel('Frequency')
     plt.title('Histogram Showing Views by Browser')
-    plt.hist(count)
+    plt.bar(count.keys(), count.values())
     plt.show()
 # part b this is what we actually display
 def show_views_by_browser_b(data):
@@ -65,18 +65,16 @@ def show_views_by_browser_b(data):
     plt.xlabel('Browser')
     plt.ylabel('Frequency')
     plt.title('Histogram Showing Views by Browser')
-    plt.hist(output)
+    plt.bar(output.keys(), output.values())
     plt.show()
 
 # ------------part 4: reader profiles------------
 def show_reader_profile_info(data):
-    
-    
     visitors = [i['visitor_uuid'] for i in data]
     #list of visitor uuids
     visitors_2 = list(set(visitors))
     #create a dictionary of the uudis with empty values
-    visitor_times = dict([(key, []) for key in visitors_2])
+    visitor_times = dict([(key, -1) for key in visitors_2])
     time = 0
     for key in visitor_times:
         for x in data:
@@ -85,16 +83,39 @@ def show_reader_profile_info(data):
                     #set the time viewing documents 
                     time = x['event_readtime']
                     #set the value of the matching key to the time
-                    visitor_times[key] = time
-                    #if there is not a event_readtime for the visitor then handle it
+                    if visitor_times[key] == -1:
+                        visitor_times[key] = time
+                    else: # users may have already viewed another document
+                        curvalue = visitor_times[key]
+                        newvalue = curvalue + time
+                        visitor_times[key] = newvalue
+                #if there is not a event_readtime for the visitor then handle it
                 except Exception:
                     pass
     #sort to have longest reading time to shortest
-    sort = sorted(visitor_times, key=lambda kv: kv[1], reverse=True)
+    sort = sorted(visitor_times.items(), key=lambda kv: kv[1], reverse=True)
     #get the top 10 visitors who spend the longest reading
     top10 = list(sort)[:10]
-    print(top10)
-    
+    keys = []
+    values = []
+    i=1
+    print("\nTop 10 Readers and their Time Spent Reading: ")
+    for user in top10:
+        keys.append(user[0])
+        values.append(user[1])
+        print("\nReader Rank #"+str(i))
+        print("Reader with ID:"+str(user[0]))
+        print("Spent Total Time Reading: "+str(user[1]))
+        i = i+1
+
+    # bar chart of times spent by the top 10 viewers
+    plt.grid(axis='y', alpha=0.75)
+    plt.xlabel('Viewer ID')
+    plt.ylabel('Time Spent Reading Documents')
+    plt.title('Bar Chart Showing Reader Profile Info for Top 10 Readers')
+    plt.bar(keys, values)
+    plt.show()
+
 # ------------part 5: also likes functionnality------------
 def also_likes(data):
     print("TO DO")
@@ -156,4 +177,3 @@ L2.pack()
 L3 = Label(gui, text="")
 L3.pack()
 gui.mainloop()
-
