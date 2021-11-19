@@ -117,8 +117,35 @@ def show_reader_profile_info(data):
     plt.show()
 
 # ------------part 5: also likes functionnality------------
-def also_likes(data):
+# part a
+def get_readers_of_document(document_uuid):
+    readers_of_document = set() # set because set will not allow duplicates and a user may have read a documnet more than once
+    for entry in data:
+        if (entry['subject_doc_id'] == document_uuid):
+            readers_of_document.add(entry['visitor_uuid'])
+    return list(readers_of_document)
+# part b
+def get_documents_read_by_user(visitor_uuid):
+    documents_read = set() # set because set will not allow duplicates and a user may have read a documnet more than once
+    for entry in data:
+        if (entry['visitor_uuid'] == visitor_uuid):
+            documents_read.add(entry['subject_doc_id'])
+    return list(documents_read)
+# part c
+def also_likes():
     print("TO DO")
+
+
+
+#part d
+def also_likes_list():
+    also_likes = []
+    # TO DO
+
+
+
+
+    return also_likes
 
 # ------------part 6: also likes graph------------
 def show_also_likes_graph(data):
