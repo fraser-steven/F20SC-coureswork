@@ -5,16 +5,19 @@
 # Fraser Steven (fs65)
 # Tegan Friedenthal (tf50)
 
-# imports
+# ------------Imports------------
 import json
 from collections import Counter
 import matplotlib.pyplot as plt
 import pycountry_convert as pc
 from tkinter import *
 
+# ------------Variables------------
+data = None
+
 # ------------part 2: views by country/continent------------
 # part a for countries 
-def show_views_by_country_hist(data):
+def show_views_by_country_hist():
     count = Counter(visitor['visitor_country'] for visitor in data)
     plt.grid(axis='y', alpha=0.75)
     plt.xlabel('Country')
@@ -24,7 +27,7 @@ def show_views_by_country_hist(data):
     plt.show() 
 
 # part b for continent
-def show_views_by_continent_hist(data):
+def show_views_by_continent_hist():
     count = Counter(visitor['visitor_country'] for visitor in data)
     continents = []
     for i in count:
@@ -45,7 +48,7 @@ def show_views_by_continent_hist(data):
 
 # ------------part 3: views by browser------------
 # part a but we dont use this
-def show_views_by_browser_a(data):
+def show_views_by_browser_a():
     count = Counter(visitor['visitor_useragent'] for visitor in data)
     plt.grid(axis='y', alpha=0.75)
     plt.xlabel('Browser')
@@ -54,7 +57,7 @@ def show_views_by_browser_a(data):
     plt.bar(count.keys(), count.values())
     plt.show()
 # part b this is what we actually display
-def show_views_by_browser_b(data):
+def show_views_by_browser_b():
     count = Counter(visitor['visitor_useragent'] for visitor in data)
     browsers = []
     for i in count:
@@ -69,7 +72,7 @@ def show_views_by_browser_b(data):
     plt.show()
 
 # ------------part 4: reader profiles------------
-def show_reader_profile_info(data):
+def show_reader_profile_info():
     visitors = [i['visitor_uuid'] for i in data]
     #list of visitor uuids
     visitors_2 = list(set(visitors))
@@ -107,7 +110,6 @@ def show_reader_profile_info(data):
         print("Reader with ID:"+str(user[0]))
         print("Spent Total Time Reading: "+str(user[1]))
         i = i+1
-
     # bar chart of times spent by the top 10 viewers
     plt.grid(axis='y', alpha=0.75)
     plt.xlabel('Viewer ID')
@@ -148,20 +150,20 @@ def also_likes_list():
     return also_likes
 
 # ------------part 6: also likes graph------------
-def show_also_likes_graph(data):
+def show_also_likes_graph():
     print("TO DO")
 
 # ------------Helper Functions------------
-def make_and_show_buttons(data):
-    B2 = Button(gui, text ="Show Views by Country Histogram", command=lambda:show_views_by_country_hist(data))
+def make_and_show_buttons():
+    B2 = Button(gui, text ="Show Views by Country Histogram", command=show_views_by_country_hist)
     B2.pack()
-    B3 = Button(gui, text ="Show Views by Continent Histogram", command=lambda:show_views_by_continent_hist(data))
+    B3 = Button(gui, text ="Show Views by Continent Histogram", command=show_views_by_continent_hist)
     B3.pack()
-    B4 = Button(gui, text ="Show Views by Browser Histogram", command=lambda:show_views_by_browser_b(data))
+    B4 = Button(gui, text ="Show Views by Browser Histogram", command=show_views_by_browser_b)
     B4.pack()
-    B5 = Button(gui, text ="Show Reader Profiles Information", command=lambda:show_reader_profile_info(data))
+    B5 = Button(gui, text ="Show Reader Profiles Information", command=show_reader_profile_info)
     B5.pack()
-    B6 = Button(gui, text ="Show Also Likes Graph", command=lambda:show_also_likes_graph(data))
+    B6 = Button(gui, text ="Show Also Likes Graph", command=show_also_likes_graph)
     B6.pack()
 
 # ------------file reading stuff------------
@@ -175,15 +177,15 @@ def openfile():
     else:
         labeltext = "Reading file: "+filename
         L2.configure(text=labeltext)
-        data = open_file_and_return_data(filename)
-        if (data):
-            make_and_show_buttons(data)
+        if(open_file_and_get_data(filename)):
+            make_and_show_buttons()
 
 # opens the file and stores the data
-def open_file_and_return_data(fname):
+def open_file_and_get_data(fname):
     try:
+        global data
         data = [json.loads(line) for line in open(fname, 'r')]
-        return data
+        return True
     except (FileNotFoundError):
         print("Error...File not found")
         L2.configure(text="Error...File not found")
