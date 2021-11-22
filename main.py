@@ -17,6 +17,7 @@ from collections import Counter
 import matplotlib.pyplot as plt
 import pycountry_convert as pc
 from tkinter import *
+import sys
 
 # ------------Variables------------
 data = None
@@ -387,12 +388,26 @@ L3.pack()
 gui.mainloop()
 
 # ------------part 8: Command line usage------------
-# TO DO
 
+#make sure that the correct amount of arguments have been given in the CLI
+if len(sys.argv) != 9:
+    raise ValueError('Please provide enough args.')
 
+#parse the input and save to variables
+visitor_uuid = sys.argv[2]
+document_uuid = sys.argv[4]
+task_id = sys.argv[6]
+file_name = sys.argv[8]
+fname = file_name
 
+#testing
+#print(f'args are {visitor_uuid} {document_uuid} {task_id} {file_name}')
 
-
-
+#test the functions are working with the arguments 
+open_file_and_get_data(fname)
+get_readers_of_document(document_uuid)
+get_documents_read_by_user(visitor_uuid)
+top_10_also_likes(document_uuid, visitor_uuid=None)
+show_also_likes_graph(document_uuid, visitor_uuid)
 
 # ---------------------------------------------------
