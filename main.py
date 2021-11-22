@@ -190,7 +190,6 @@ def also_likes(document_uuid, visitor_uuid=None):
     # with values of how many times they were read by the specified readers
     documents_view_counts = get_documents_view_count_by_visitors(readers_of_document)
     documents_view_counts = list(documents_view_counts.items())
-    print(documents_view_counts)
     # make a list of only the document uuids 
     liked_documents_list = [document[0] for document in documents_view_counts if (document[1] != -1)]
     # coursework spec says "sorted by the sorting function parameter"
