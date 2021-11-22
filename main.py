@@ -5,6 +5,12 @@
 # Fraser Steven (fs65)
 # Tegan Friedenthal (tf50)
 
+# Good Document UUID's for testing part 5:
+# - 131216030921-437624c61000e4b0cfabd4cc13f06ae1
+# - 140228063757-c3f65672a508185d19b16e1c4049f83d
+# - 130520152036-0fc36dda7e7546bdb943026e50690814
+# - 130726171426-7e867e41ac7ebc63ffdce78d7cbb2ab8
+
 # ------------Imports------------
 import json
 from collections import Counter
@@ -249,11 +255,20 @@ def top_10_also_likes(document_uuid, visitor_uuid=None):
     else: # no results
         print("\nNo Also Liked Documents Found...")
     i=1
+    values = []
     for doc in also_likes:
+        values.append(documents_view_counts[doc])
         print("\nDocument Rank #"+str(i))
         print("Document with ID:"+str(doc))
         print("Number of Views: "+str(documents_view_counts[doc]))
         i = i+1
+    # bar chart of number of views for the top 10 documents
+    plt.grid(axis='y', alpha=0.75)
+    plt.xlabel('Document UUID')
+    plt.ylabel('Number of times the document was viewed.')
+    plt.title('Bar Chart Showing Also Likes for Top 10 Liked Documents')
+    plt.bar(also_likes, values)
+    plt.show()
     return also_likes
 
 # ------------part 6: also likes graph------------
@@ -261,6 +276,17 @@ def show_also_likes_graph(document_uuid, visitor_uuid):
     print("TO DO")
 
 # ------------Helper Functions------------
+def test_also_likes():
+    docs = []
+    for entry in data:
+        try:
+            doc_id = entry['subject_doc_id']
+            docs.append(doc_id)
+        except Exception:
+            pass
+    docs = list(set(docs))
+    for doc in docs:
+        top_10_also_likes(doc)
 def make_and_show_buttons_also_likes():
     global E2
     global E3
@@ -275,9 +301,9 @@ def make_and_show_buttons_also_likes():
         L6.configure(text="")
         if (visitor_uuid == ""):
             visitor_uuid = None
-        B7 = Button(gui2, text ="Print Also Likes List", command=lambda:also_likes(document_uuid, visitor_uuid))
+        B7 = Button(gui2, text ="Also Likes List", command=lambda:also_likes(document_uuid, visitor_uuid))
         B7.pack()
-        B8 = Button(gui2, text ="Print Also Likes Top 10 Documents", command=lambda:top_10_also_likes(document_uuid, visitor_uuid))
+        B8 = Button(gui2, text ="Also Likes Top 10 Documents", command=lambda:top_10_also_likes(document_uuid, visitor_uuid))
         B8.pack()
         B9 = Button(gui2, text ="Show Also Likes Graph", command=lambda:show_also_likes_graph(document_uuid, visitor_uuid))
         B9.pack()
@@ -330,6 +356,8 @@ def openfile():
         L2.configure(text=labeltext)
         if(open_file_and_get_data(filename)):
             make_and_show_buttons()
+            # FOR TESTING COMMENT THIS OUT LATER!!!!!
+            # test_also_likes()
 
 # opens the file and stores the data
 def open_file_and_get_data(fname):
@@ -367,4 +395,4 @@ gui.mainloop()
 
 
 
-# --------------------------------------------------
+# ---------------------------------------------------
