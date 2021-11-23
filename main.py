@@ -404,11 +404,27 @@ fname = file_name
 #print(f'args are {visitor_uuid} {document_uuid} {task_id} {file_name}')
 
 #test the functions are working with the arguments 
-open_file_and_get_data(fname)
-get_readers_of_document(document_uuid)
-get_documents_read_by_user(visitor_uuid)
-top_10_also_likes(document_uuid, visitor_uuid=None)
-#display after implimented
-show_also_likes_graph(document_uuid, visitor_uuid)
+if task_id == "2a":
+	show_views_by_country_hist()
 
+if task_id == "2b":
+	show_views_by_continent_hist()
+
+if task_id == "3a":
+	show_views_by_browser_a()
+
+if task_id == "3b":
+	show_views_by_browser_b()
+
+if task_id == "4":
+	show_reader_profile_info()
+
+if task_id == "5d":
+	top_10_also_likes(document_uuid, visitor_uuid)
+
+if task_id == "6":
+	show_also_likes_graph(document_uuid, visitor_uuid)
+
+if task_id == "7":
+	print("not done yet by fraser")
 # ---------------------------------------------------
