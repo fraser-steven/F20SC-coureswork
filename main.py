@@ -426,5 +426,6 @@ if task_id == "6":
 	show_also_likes_graph(document_uuid, visitor_uuid)
 
 if task_id == "7":
-	print("not done yet by fraser")
+	#commnet out after implimentation
+	#show_also_likes_graph(document_uuid, visitor_uuid)
 # ---------------------------------------------------
