@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 import pycountry_convert as pc
 from tkinter import *
 import sys
+import pydot
 
 # ------------Variables------------
 data = None
@@ -274,7 +275,31 @@ def top_10_also_likes(document_uuid, visitor_uuid=None):
 
 # ------------part 6: also likes graph------------
 def show_also_likes_graph(document_uuid, visitor_uuid):
-    print("TO DO")
+	
+	#DISPLAYS GRAPH FOR ONE VISITOR_UUID COULD BE EXPANDED TO SHOW MORE THAN ONE
+	
+	#get data from the part c function 
+	documents = also_likes(document_uuid, visitor_uuid)
+
+	#create the graph
+	graph = pydot.Dot("also_likes_graph", graph_type="graph", bgcolor="white")
+	#shorten the uuid to the last 4 characters 
+	uuid = visitor_uuid[-4:]
+
+	#set the uuid to the first node and fill it as green
+	graph.add_node(pydot.Node(uuid, shape="circle", fillcolor=green, style=filled))
+
+	#loop through the documents and make nodes for each document
+	for doc_id in documents:
+		#shorten document_uuid to last 4 characters
+		doc_uuid = document_uuid[-4:]
+		graph.add_node(pydot.Node(doc_uuid, shape="circle", fillcolor=green, style=filled))
+		#add edge from visitor_uuid to document_uuid to show "also_likes" relationship 
+		graph.add_edge(pydot.Edge(uuid, doc_uuid, color="black"))
+
+	#output image of the graph
+	graph.write_png("output.png")
+
 
 # ------------Helper Functions------------
 def test_also_likes():
