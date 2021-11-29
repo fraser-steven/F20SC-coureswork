@@ -30,6 +30,8 @@ L6 = None
 gui2 = None 
 opened_file = False
 opened_also_likes = False
+tkinter_open = False
+command_line_activated = False
 
 # ------------part 2: views by country/continent------------
 # part a for countries 
@@ -274,7 +276,6 @@ def top_10_also_likes(document_uuid, visitor_uuid=None):
     return also_likes
 
 # ------------part 6: also likes graph------------
-global img
 def show_also_likes_graph(document_uuid, visitor_uuid):
     #create the graph
     graph = pydot.Dot("also_likes_graph", graph_type="digraph", bgcolor="white")
@@ -395,76 +396,97 @@ def openfile():
     else:
         labeltext = "Reading file: "+filename
         L2.configure(text=labeltext)
-        if(open_file_and_get_data(filename)):
+        if(open_file_and_set_data(filename)):
             make_and_show_buttons()
 
 # opens the file and stores the data
-def open_file_and_get_data(fname):
+def open_file_and_set_data(fname):
     try:
         global data
+        global tkinter_open
         data = [json.loads(line) for line in open(fname, 'r')]
         return True
     except (FileNotFoundError):
-        print("Error...File not found")
-        L2.configure(text="Error...File not found")
+        if tkinter_open: 
+            print("Error...File not found")
+            L2.configure(text="Error...File not found")
+        else:
+            raise Exception("Error...File not found")
         return False
 
-# ------------part 7: GUI using tkinter------------
-gui = Tk()
-gui.title("Document Tracker Data Analyzer")
-gui.geometry("600x400")
-L1 = Label(gui, text="File Name:")
-L1.pack()
-E1 = Entry(gui, bd =2)
-E1.pack()
-B = Button(gui, text ="Analyze File", command = openfile)
-B.pack()
-L2 = Label(gui, text="")
-L2.pack()
-L3 = Label(gui, text="")
-L3.pack()
-gui.mainloop()
-
 # ------------part 8: Command line usage------------
+# testing commands for command line usage:
+# python ipcw2.py -t 4 -f issuu_cw2.json
+# python ipcw2.py -u 232eeca785873d35 -d 131216030921-437624c61000e4b0cfabd4cc13f06ae1 -t 6 -f issuu_cw2.json
+# python ipcw2.py -d 140228202800-6ef39a241f35301a9a42cd0ed21e5fb0 -t 6 -f issuu_cw2.json
+def run_task(task_id, document_uuid=None, visitor_uuid=None):
+    if task_id == "2a":
+        show_views_by_country_hist()
+    elif task_id == "2b":
+        show_views_by_continent_hist()
+    elif task_id == "3a":
+        show_views_by_browser_a()
+    elif task_id == "3b":
+        show_views_by_browser_b()
+    elif task_id == "4":
+        show_reader_profile_info()
+    elif task_id == "5a":
+        get_readers_of_document(document_uuid)
+    elif task_id == "5b":
+        get_documents_read_by_user(visitor_uuid)
+    elif task_id == "5c":
+        also_likes(document_uuid, visitor_uuid)
+    elif task_id == "5d":
+        top_10_also_likes(document_uuid, visitor_uuid)
+    elif task_id == "6":
+        show_also_likes_graph(document_uuid, visitor_uuid)
 
-#make sure that the correct amount of arguments have been given in the CLI
-if len(sys.argv) != 9:
-    raise ValueError('Please provide enough args.')
+if (len(sys.argv) != 1):
+    command_line_activated = True
+    document_uuid = None
+    visitor_uuid = None
+    task_id = None
+    arg_count = len(sys.argv)-1
+    # there should be an even number of arguments exclusing the name of the python file
+    if ((arg_count%2) != 0):
+        raise Exception('A problem has been detected with the arguments you have input. \nPlease try again...')
+    index = 0
+    while (index < arg_count): # set the variable values
+        # possibilities: be -u -d -t -f
+        index = index + 1
+        option = sys.argv[index]
+        index = index + 1 # increment the index
+        if (option == "-u"):
+            visitor_uuid = sys.argv[index]
+        elif (option == "-d"):
+            document_uuid = sys.argv[index]
+        elif (option == "-t"):
+            task_id = sys.argv[index]
+        elif (option == "-f"):
+            filename = sys.argv[index]
+        else:
+            print(option)
+            raise Exception('A problem has been detected with the arguments you have input. \nPlease try again...')
+    # we need to read the file
+    if (open_file_and_set_data(filename)):
+        # now run the task that was specified
+        run_task(task_id, document_uuid, visitor_uuid)
 
-#parse the input and save to variables
-visitor_uuid = sys.argv[2]
-document_uuid = sys.argv[4]
-task_id = sys.argv[6]
-file_name = sys.argv[8]
-fname = file_name
-
-#testing
-#print(f'args are {visitor_uuid} {document_uuid} {task_id} {file_name}')
-
-#test the functions are working with the arguments 
-if task_id == "2a":
-	show_views_by_country_hist()
-
-if task_id == "2b":
-	show_views_by_continent_hist()
-
-if task_id == "3a":
-	show_views_by_browser_a()
-
-if task_id == "3b":
-	show_views_by_browser_b()
-
-if task_id == "4":
-	show_reader_profile_info()
-
-if task_id == "5d":
-	top_10_also_likes(document_uuid, visitor_uuid)
-
-if task_id == "6":
-	show_also_likes_graph(document_uuid, visitor_uuid)
-
-if task_id == "7":
-    print()
-	#commnet out after implimentation
-	#show_also_likes_graph(document_uuid, visitor_uuid)
+# ------------part 7: GUI using tkinter------------
+if (command_line_activated == False):
+    gui = Tk()
+    gui.title("Document Tracker Data Analyzer")
+    gui.geometry("600x400")
+    L1 = Label(gui, text="File Name:")
+    L1.pack()
+    E1 = Entry(gui, bd =2)
+    E1.pack()
+    B = Button(gui, text ="Analyze File", command = openfile)
+    B.pack()
+    L2 = Label(gui, text="")
+    L2.pack()
+    L3 = Label(gui, text="")
+    L3.pack()
+    tkinter_open = True
+    gui.mainloop()
 # ---------------------------------------------------
