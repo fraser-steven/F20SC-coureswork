@@ -303,12 +303,8 @@ def show_also_likes_graph(document_uuid, visitor_uuid):
     #output image of the graph
     img_name = document_uuid + ".png"
     graph.write_png(img_name)
-    root = Tk()  
-    canvas = Canvas(root)  
-    canvas.pack()  
-    img = ImageTk.PhotoImage(Image.open(img_name))  
-    canvas.create_image(image=img) 
-    root.mainloop() 
+    image = Image.open(img_name)
+    image.show()
 
 # ------------Helper Functions------------
 def test_also_likes():
