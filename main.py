@@ -19,6 +19,7 @@ import pycountry_convert as pc
 from tkinter import *
 import sys
 import pydot
+from PIL import ImageTk,Image  
 
 # ------------Variables------------
 data = None
@@ -27,6 +28,8 @@ E2 = None
 E3 = None
 L6 = None
 gui2 = None 
+opened_file = False
+opened_also_likes = False
 
 # ------------part 2: views by country/continent------------
 # part a for countries 
@@ -69,6 +72,7 @@ def show_views_by_browser_a():
     plt.title('Histogram Showing Views by Browser')
     plt.bar(count.keys(), count.values())
     plt.show()
+
 # part b this is what we actually display
 def show_views_by_browser_b():
     count = Counter(visitor['visitor_useragent'] for visitor in data)
@@ -142,7 +146,8 @@ def get_readers_of_document(document_uuid):
         # if subject_doc_id or env_doc_id was missing just pass
         except Exception:
             pass
-    return readers_of_document
+    return list(set(readers_of_document)) # because we don't want to count the same user more than once
+
 # part b
 def get_documents_read_by_user(visitor_uuid):
     documents_read = []
@@ -155,7 +160,7 @@ def get_documents_read_by_user(visitor_uuid):
         # an entry may have a missing value and in the case it does just pass
         except Exception:
             pass
-    return documents_read
+    return list(set(documents_read)) # because we dont want to count the same user reading the document more than once 
 # get_documents_view_count_by_visitors is a helper function for part c and d
 def get_documents_view_count_by_visitors(readers_list):
     # make list of all documents 
@@ -180,20 +185,17 @@ def get_documents_view_count_by_visitors(readers_list):
                 documents_view_counts[document] = documents_view_counts[document]+1
     # return the unsorted dictionary
     return documents_view_counts
+
 # part c
 def also_likes(document_uuid, visitor_uuid=None):
-    if (visitor_uuid): # if a visitor uuid has been specified then we only want other documents read by THIS reader
+    if (visitor_uuid): 
         # check if visitor_uuid viewed document_uuid
-        visited_docs = get_readers_of_document(visitor_uuid)
-        if (visited_docs.count(document_uuid)>0):
-            readers_of_document = [visitor_uuid]
-        else:
+        visited_docs = get_readers_of_document(document_uuid)
+        if (visited_docs.count(visitor_uuid) == 0):
             raise Exception("Error... Invalid parameters, visitor_uuid did not view document_uuid")
             print("Error... Invalid parameters, visitor_uuid did not view document_uuid")
-    else:
-        # get a list of all the readers of document_uuid
-        readers_of_document = get_readers_of_document(document_uuid)
-        readers_of_document = list(set(readers_of_document))
+    # get a list of all the readers of document_uuid
+    readers_of_document = get_readers_of_document(document_uuid)
     # use the helper function explained above to get a dictionary of all the documents 
     # with values of how many times they were read by the specified readers
     documents_view_counts = get_documents_view_count_by_visitors(readers_of_document)
@@ -201,7 +203,7 @@ def also_likes(document_uuid, visitor_uuid=None):
     # make a list of only the document uuids 
     liked_documents_list = [document[0] for document in documents_view_counts if (document[1] != -1)]
     # coursework spec says "sorted by the sorting function parameter"
-    #liked_documents_list.sort()
+    liked_documents_list.sort()
     # make sure document_uuid is not in the list
     try:
         liked_documents_list.remove(document_uuid) 
@@ -213,24 +215,21 @@ def also_likes(document_uuid, visitor_uuid=None):
         print("\nAlso Likes List: ")
         for doc_id in liked_documents_list:
             print(" - "+doc_id)
-        print(liked_documents_list)
     else:
         print("\nNo Also Liked Documents Found...")
     return liked_documents_list
+
 #part d
 def top_10_also_likes(document_uuid, visitor_uuid=None):
-    if (visitor_uuid): # if a visitor uuid has been specified then we only want other documents read by THIS reader
+    if (visitor_uuid): 
         # check if visitor_uuid viewed document_uuid
-        visited_docs = get_readers_of_document(visitor_uuid)
-        if (visited_docs.count(document_uuid)>0):
-            readers_of_document = [visitor_uuid]
-        else:
+        visited_docs = get_readers_of_document(document_uuid)
+        if (visited_docs.count(visitor_uuid) == 0):
             raise Exception("Error... Invalid parameters, visitor_uuid did not view document_uuid")
             print("Error... Invalid parameters, visitor_uuid did not view document_uuid")
-    else:
-        # get a list of all the readers of document_uuid
-        readers_of_document = get_readers_of_document(document_uuid)
-        readers_of_document = list(set(readers_of_document))
+
+    # get a list of all the readers of document_uuid
+    readers_of_document = get_readers_of_document(document_uuid)
     # use the helper function explained above to get a dictionary of all the documents 
     # with values of how many times they were read by the specified readers
     readers_of_document = list(set(readers_of_document))
@@ -265,41 +264,51 @@ def top_10_also_likes(document_uuid, visitor_uuid=None):
         print("Number of Views: "+str(documents_view_counts[doc]))
         i = i+1
     # bar chart of number of views for the top 10 documents
+    also_likes_shortened = [d[-4:] for d in also_likes]
     plt.grid(axis='y', alpha=0.75)
     plt.xlabel('Document UUID')
     plt.ylabel('Number of times the document was viewed.')
     plt.title('Bar Chart Showing Also Likes for Top 10 Liked Documents')
-    plt.bar(also_likes, values)
+    plt.bar(also_likes_shortened, values)
     plt.show()
     return also_likes
 
 # ------------part 6: also likes graph------------
+global img
 def show_also_likes_graph(document_uuid, visitor_uuid):
-	
-	#DISPLAYS GRAPH FOR ONE VISITOR_UUID COULD BE EXPANDED TO SHOW MORE THAN ONE
-	
-	#get data from the part c function 
-	documents = also_likes(document_uuid, visitor_uuid)
-
-	#create the graph
-	graph = pydot.Dot("also_likes_graph", graph_type="graph", bgcolor="white")
-	#shorten the uuid to the last 4 characters 
-	uuid = visitor_uuid[-4:]
-
-	#set the uuid to the first node and fill it as green
-	graph.add_node(pydot.Node(uuid, shape="circle", fillcolor=green, style=filled))
-
-	#loop through the documents and make nodes for each document
-	for doc_id in documents:
-		#shorten document_uuid to last 4 characters
-		doc_uuid = document_uuid[-4:]
-		graph.add_node(pydot.Node(doc_uuid, shape="circle", fillcolor=green, style=filled))
-		#add edge from visitor_uuid to document_uuid to show "also_likes" relationship 
-		graph.add_edge(pydot.Edge(uuid, doc_uuid, color="black"))
-
-	#output image of the graph
-	graph.write_png("output.png")
-
+    #create the graph
+    graph = pydot.Dot("also_likes_graph", graph_type="digraph", bgcolor="white")
+    #get data from the part c function 
+    documents = also_likes(document_uuid, visitor_uuid)
+    for doc in documents:
+        visitors_of_doc = get_readers_of_document(doc)
+        for vis_uuid in visitors_of_doc:
+            #shorten the uuid to the last 4 characters 
+            uuid = vis_uuid[-4:]
+            if (vis_uuid == visitor_uuid):
+                graph.add_node(pydot.Node(uuid, shape="box", fillcolor="green", style="filled"))
+            else:
+                graph.add_node(pydot.Node(uuid, shape="box", fillcolor="white", style="filled"))
+            visitor_viewed_documents = get_documents_read_by_user(vis_uuid)
+            #loop through the documents and make nodes for each document
+            for doc_for_visitor in visitor_viewed_documents:
+                #shorten document_uuid to last 4 characters
+                doc_uuid = doc_for_visitor[-4:]
+                if (doc_for_visitor == document_uuid):
+                    graph.add_node(pydot.Node(doc_uuid, shape="circle", fillcolor="green", style="filled"))
+                else:
+                    graph.add_node(pydot.Node(doc_uuid, shape="circle", fillcolor="white", style="filled"))
+                #add edge from visitor_uuid to document_uuid to show "also_likes" relationship 
+                graph.add_edge(pydot.Edge(uuid, doc_uuid, color="black"))
+    #output image of the graph
+    img_name = document_uuid + ".png"
+    graph.write_png(img_name)
+    root = Tk()  
+    canvas = Canvas(root)  
+    canvas.pack()  
+    img = ImageTk.PhotoImage(Image.open(img_name))  
+    canvas.create_image(image=img) 
+    root.mainloop() 
 
 # ------------Helper Functions------------
 def test_also_likes():
@@ -313,11 +322,13 @@ def test_also_likes():
     docs = list(set(docs))
     for doc in docs:
         top_10_also_likes(doc)
+
 def make_and_show_buttons_also_likes():
     global E2
     global E3
     global L6
     global gui2
+    global opened_also_likes
     document_uuid = E2.get()
     visitor_uuid = E3.get()
     if (document_uuid == ""):
@@ -327,18 +338,23 @@ def make_and_show_buttons_also_likes():
         L6.configure(text="")
         if (visitor_uuid == ""):
             visitor_uuid = None
-        B7 = Button(gui2, text ="Also Likes List", command=lambda:also_likes(document_uuid, visitor_uuid))
-        B7.pack()
-        B8 = Button(gui2, text ="Also Likes Top 10 Documents", command=lambda:top_10_also_likes(document_uuid, visitor_uuid))
-        B8.pack()
-        B9 = Button(gui2, text ="Show Also Likes Graph", command=lambda:show_also_likes_graph(document_uuid, visitor_uuid))
-        B9.pack()
+        if (opened_also_likes == False):
+            B7 = Button(gui2, text ="Also Likes List", command=lambda:also_likes(document_uuid, visitor_uuid))
+            B7.pack()
+            B8 = Button(gui2, text ="Also Likes Top 10 Documents", command=lambda:top_10_also_likes(document_uuid, visitor_uuid))
+            B8.pack()
+            B9 = Button(gui2, text ="Show Also Likes Graph", command=lambda:show_also_likes_graph(document_uuid, visitor_uuid))
+            B9.pack()
+            opened_also_likes = True
+
 def open_also_likes_facility():
     global filename
     global E2
     global E3
     global L6
     global gui2
+    global opened_also_likes
+    opened_also_likes = False
     gui2 = Tk()
     gui2.title("Also Likes Facility for file: "+filename)
     gui2.geometry("600x400")
@@ -357,16 +373,19 @@ def open_also_likes_facility():
     gui2.mainloop()
 
 def make_and_show_buttons():
-    B2 = Button(gui, text ="Show Views by Country Histogram", command=show_views_by_country_hist)
-    B2.pack()
-    B3 = Button(gui, text ="Show Views by Continent Histogram", command=show_views_by_continent_hist)
-    B3.pack()
-    B4 = Button(gui, text ="Show Views by Browser Histogram", command=show_views_by_browser_b)
-    B4.pack()
-    B5 = Button(gui, text ="Show Reader Profiles Information", command=show_reader_profile_info)
-    B5.pack()
-    B6 = Button(gui, text ="Open Also Likes Facility", command=open_also_likes_facility)
-    B6.pack()
+    global opened_file
+    if (opened_file == False):
+        B2 = Button(gui, text ="Show Views by Country Histogram", command=show_views_by_country_hist)
+        B2.pack()
+        B3 = Button(gui, text ="Show Views by Continent Histogram", command=show_views_by_continent_hist)
+        B3.pack()
+        B4 = Button(gui, text ="Show Views by Browser Histogram", command=show_views_by_browser_b)
+        B4.pack()
+        B5 = Button(gui, text ="Show Reader Profiles Information", command=show_reader_profile_info)
+        B5.pack()
+        B6 = Button(gui, text ="Open Also Likes Facility", command=open_also_likes_facility)
+        B6.pack()
+        opened_file = True
 
 # ------------file reading stuff------------
 # open and read specified file
@@ -382,8 +401,6 @@ def openfile():
         L2.configure(text=labeltext)
         if(open_file_and_get_data(filename)):
             make_and_show_buttons()
-            # FOR TESTING COMMENT THIS OUT LATER!!!!!
-            # test_also_likes()
 
 # opens the file and stores the data
 def open_file_and_get_data(fname):
@@ -451,6 +468,7 @@ if task_id == "6":
 	show_also_likes_graph(document_uuid, visitor_uuid)
 
 if task_id == "7":
+    print()
 	#commnet out after implimentation
 	#show_also_likes_graph(document_uuid, visitor_uuid)
 # ---------------------------------------------------
