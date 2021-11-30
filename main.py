@@ -57,6 +57,10 @@ B3 = None
 B4 = None
 B5 = None
 B6 = None
+B7 = None
+B8 = None
+B9 = None
+B10 = None
 
 # ------------part 2: views by country/continent------------
 # part a for countries 
@@ -193,13 +197,7 @@ def get_documents_read_by_user(visitor_uuid):
 def get_documents_view_count_by_visitors(visitors_list):
     # make list of all documents 
     # documents = [i['subject_doc_id'] for i in data] <----- makes KeyError because some values must be missing
-    documents = []
-    for entry in data:
-        try:
-            documents.append(entry['subject_doc_id'])
-        except Exception:
-            pass
-    documents = list(set(documents))
+    documents = get_unique_documents_in_file()
     # make dictionary of documents with all values -1 to initialize
     documents_view_counts  = dict([(key, -1) for key in documents])
     for reader in visitors_list:
@@ -369,37 +367,71 @@ def test_also_likes():
 # if they re enter bad data eg. empty string we need to remove the buttons
 def hide_also_likes_buttons():
     global B10, B8, B9, opened_also_likes
-    try:
+    if (opened_also_likes):
         B8.pack_forget()
         B9.pack_forget()
         B10.pack_forget()
         opened_also_likes = False
-    except Exception:
-        pass
-    
+
+def get_unique_documents_in_file():
+    documents = []
+    for entry in data:
+        try:
+            documents.append(entry['subject_doc_id'])
+        except Exception:
+            pass
+    documents = list(set(documents))
+    return documents
+
 # this function generates buttons to show the graphs for part 5 and 6 once the user has input a document uuid (and visitor uuid if desired)
 # the function also checks that the information inputted by the user is correct
 def make_and_show_buttons_also_likes():
-    global E2,E3,L6,gui2,opened_also_likes,B7
+    global E2, E3, L6, gui2, opened_also_likes, B7, B8, B9, B10
     B7.configure(text="Update Document UUID/ User UUID")
     document_uuid = E2.get()
     visitor_uuid = E3.get()
+    documents = get_unique_documents_in_file()
+    approved = True
+
+    # check document uuid is valid
+    # check if a document uuid was entered
     if (document_uuid == ""):
+        approved = False
         hide_also_likes_buttons()
         L6.configure(text="Error... No document_uuid entered, document_uuid is required.")
         print("Error... No document_uuid entered, document_uuid is required.")
+    # check if the document exists in the file
+    elif (documents.count(document_uuid) == 0):
+        approved = False
+        hide_also_likes_buttons()
+        L6.configure(text="Error... The document uuid entered does not exist in the file you have choosen.")
+        print("Error... The document uuid entered does not exist in the file you have choosen.")
+    
+    # check visitor uuid is valid
+    # check if a visitor uuid was entered
+    if (visitor_uuid == ""):
+        visitor_uuid = None
+    elif (visitor_uuid != ""): # visitor uuid not empty therefore the user has given an input for this field
+        # check if the user exists in the file and if they have viewed the specified document
+        user_viewed_docs = get_documents_read_by_user(visitor_uuid)
+        if (user_viewed_docs.count(document_uuid) == 0):
+            approved = False
+            hide_also_likes_buttons()
+            L6.configure(text="Error... The visitor specified did not view the document you have specified.")
+            print("Error... The visitor specified did not view the document you have specified.")
+
+    # all user input checks complete now proceed to generate buttons if the buttons have not already been generated
     else:
-        L6.configure(text="")
-        if (visitor_uuid == ""):
-            visitor_uuid = None
-        if (opened_also_likes == False):
-            B10 = Button(gui2, text ="Also Likes List", command=lambda:also_likes(document_uuid, visitor_uuid))
-            B10.pack()
-            B8 = Button(gui2, text ="Also Likes Top 10 Documents", command=lambda:top_10_also_likes(document_uuid, visitor_uuid))
-            B8.pack()
-            B9 = Button(gui2, text ="Show Also Likes Graph", command=lambda:show_also_likes_graph(document_uuid, visitor_uuid))
-            B9.pack()
-            opened_also_likes = True
+        L6.configure(text="Input(s) approved!")
+    
+    if (approved and (opened_also_likes==False)):
+        B10 = Button(gui2, text ="Also Likes List", command=lambda:also_likes(document_uuid, visitor_uuid))
+        B10.pack()
+        B8 = Button(gui2, text ="Also Likes Top 10 Documents", command=lambda:top_10_also_likes(document_uuid, visitor_uuid))
+        B8.pack()
+        B9 = Button(gui2, text ="Show Also Likes Graph", command=lambda:show_also_likes_graph(document_uuid, visitor_uuid))
+        B9.pack()
+        opened_also_likes = True
 
 # this function opens the also likes facility
 def open_also_likes_facility():
@@ -420,6 +452,8 @@ def open_also_likes_facility():
     B7.pack()
     L6 = Label(gui2, text="")
     L6.pack()
+    L7 = Label(gui2, text="")
+    L7.pack()
     gui2.mainloop()
 
 # this function generates the buttons for parts 1 to 4 once a file has been entered by the user using the gui
@@ -442,15 +476,13 @@ def make_and_show_buttons():
 # if they re enter bad data eg. empty string  or file does not exist we need to remove the buttons
 def hide_file_page_buttons():
     global opened_file, B2, B3, B4, B5, B6
-    try:
+    if (opened_file):
         B2.pack_forget()
         B3.pack_forget()
         B4.pack_forget()
         B5.pack_forget()
         B6.pack_forget()
         opened_file = False
-    except Exception:
-        pass
 
 # ------------file reading stuff------------
 # open and read specified file
