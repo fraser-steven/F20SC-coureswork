@@ -365,12 +365,17 @@ def test_also_likes():
     sort = list(sort)
     print(sort[:10])
 
+# also likes page generates buttons after user inputs valid document uuid
+# if they re enter bad data eg. empty string we need to remove the buttons
 def hide_also_likes_buttons():
     global B10, B8, B9, opened_also_likes
-    B8.pack_forget()
-    B9.pack_forget()
-    B10.pack_forget()
-    opened_also_likes = False
+    try:
+        B8.pack_forget()
+        B9.pack_forget()
+        B10.pack_forget()
+        opened_also_likes = False
+    except Exception:
+        pass
     
 # this function generates buttons to show the graphs for part 5 and 6 once the user has input a document uuid (and visitor uuid if desired)
 # the function also checks that the information inputted by the user is correct
@@ -433,14 +438,19 @@ def make_and_show_buttons():
         B6.pack()
         opened_file = True
 
+# main page generates buttons after user inputs valid file name
+# if they re enter bad data eg. empty string  or file does not exist we need to remove the buttons
 def hide_file_page_buttons():
     global opened_file, B2, B3, B4, B5, B6
-    B2.pack_forget()
-    B3.pack_forget()
-    B4.pack_forget()
-    B5.pack_forget()
-    B6.pack_forget()
-    opened_file = False
+    try:
+        B2.pack_forget()
+        B3.pack_forget()
+        B4.pack_forget()
+        B5.pack_forget()
+        B6.pack_forget()
+        opened_file = False
+    except Exception:
+        pass
 
 # ------------file reading stuff------------
 # open and read specified file
