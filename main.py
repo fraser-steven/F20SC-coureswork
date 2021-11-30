@@ -52,6 +52,11 @@ E1 = None
 L2 = None 
 B = None
 B7 = None
+B2 = None
+B3 = None
+B4 = None
+B5 = None
+B6 = None
 
 # ------------part 2: views by country/continent------------
 # part a for countries 
@@ -360,17 +365,22 @@ def test_also_likes():
     sort = list(sort)
     print(sort[:10])
 
+def hide_also_likes_buttons():
+    global B10, B8, B9, opened_also_likes
+    B8.pack_forget()
+    B9.pack_forget()
+    B10.pack_forget()
+    opened_also_likes = False
+    
 # this function generates buttons to show the graphs for part 5 and 6 once the user has input a document uuid (and visitor uuid if desired)
 # the function also checks that the information inputted by the user is correct
 def make_and_show_buttons_also_likes():
-    global E2
-    global E3
-    global L6
-    global gui2
-    global opened_also_likes
+    global E2,E3,L6,gui2,opened_also_likes,B7
+    B7.configure(text="Update Document UUID/ User UUID")
     document_uuid = E2.get()
     visitor_uuid = E3.get()
     if (document_uuid == ""):
+        hide_also_likes_buttons()
         L6.configure(text="Error... No document_uuid entered, document_uuid is required.")
         print("Error... No document_uuid entered, document_uuid is required.")
     else:
@@ -378,8 +388,8 @@ def make_and_show_buttons_also_likes():
         if (visitor_uuid == ""):
             visitor_uuid = None
         if (opened_also_likes == False):
-            B7 = Button(gui2, text ="Also Likes List", command=lambda:also_likes(document_uuid, visitor_uuid))
-            B7.pack()
+            B10 = Button(gui2, text ="Also Likes List", command=lambda:also_likes(document_uuid, visitor_uuid))
+            B10.pack()
             B8 = Button(gui2, text ="Also Likes Top 10 Documents", command=lambda:top_10_also_likes(document_uuid, visitor_uuid))
             B8.pack()
             B9 = Button(gui2, text ="Show Also Likes Graph", command=lambda:show_also_likes_graph(document_uuid, visitor_uuid))
@@ -388,12 +398,7 @@ def make_and_show_buttons_also_likes():
 
 # this function opens the also likes facility
 def open_also_likes_facility():
-    global filename
-    global E2
-    global E3
-    global L6
-    global gui2
-    global opened_also_likes
+    global filename,E2,E3,L6,B7,gui2,opened_also_likes
     opened_also_likes = False
     gui2 = Tk()
     gui2.title("Also Likes Facility for file: "+filename)
@@ -414,10 +419,8 @@ def open_also_likes_facility():
 
 # this function generates the buttons for parts 1 to 4 once a file has been entered by the user using the gui
 def make_and_show_buttons():
-    global opened_file
-    global B7
+    global opened_file, B2, B3, B4, B5, B6
     if (opened_file == False):
-        B7.configure(text = "Update")
         B2 = Button(gui, text ="Show Views by Country Histogram", command=show_views_by_country_hist)
         B2.pack()
         B3 = Button(gui, text ="Show Views by Continent Histogram", command=show_views_by_continent_hist)
@@ -430,6 +433,15 @@ def make_and_show_buttons():
         B6.pack()
         opened_file = True
 
+def hide_file_page_buttons():
+    global opened_file, B2, B3, B4, B5, B6
+    B2.pack_forget()
+    B3.pack_forget()
+    B4.pack_forget()
+    B5.pack_forget()
+    B6.pack_forget()
+    opened_file = False
+
 # ------------file reading stuff------------
 # open and read specified file
 def openfile():
@@ -437,7 +449,8 @@ def openfile():
     global filename
     filename = E1.get()
     if (filename == ""):
-        L2.configure(text="Error... No file name was entered")
+        hide_file_page_buttons()
+        L2.configure(text="Error... No file name was entered.")
         print("Error... No file name was entered")
     else:
         labeltext = "Reading file: "+filename
@@ -449,13 +462,13 @@ def openfile():
 # opens the file and stores the data
 def open_file_and_set_data(fname):
     try:
-        global data
-        global tkinter_open
+        global data, tkinter_open
         data = [json.loads(line) for line in open(fname, 'r')]
         return True
     except (FileNotFoundError):
         if tkinter_open: 
             print("Error...File not found")
+            hide_file_page_buttons()
             L2.configure(text="Error...File not found")
         else:
             raise Exception("Error...File not found")
@@ -526,11 +539,7 @@ if (len(sys.argv) != 1):
 
 # ------------part 7: GUI using tkinter------------
 def generate_gui():
-    global gui
-    global E1
-    global L2
-    global B
-    global tkinter_open
+    global gui, E1, L2, B, tkinter_open
     gui = Tk()
     gui.title("Document Tracker Data Analyzer")
     gui.geometry("600x400")
