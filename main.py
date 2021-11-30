@@ -421,7 +421,7 @@ def make_and_show_buttons_also_likes():
             print("Error... The visitor specified did not view the document you have specified.")
 
     # all user input checks complete now proceed to generate buttons if the buttons have not already been generated
-    else:
+    if (approved):
         L6.configure(text="Input(s) approved!")
     
     if (approved and (opened_also_likes==False)):
