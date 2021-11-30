@@ -5,11 +5,25 @@
 # Fraser Steven (fs65)
 # Tegan Friedenthal (tf50)
 
-# Good Document UUID's for testing part 5:
-# - 131216030921-437624c61000e4b0cfabd4cc13f06ae1
-# - 140228063757-c3f65672a508185d19b16e1c4049f83d
-# - 130520152036-0fc36dda7e7546bdb943026e50690814
-# - 130726171426-7e867e41ac7ebc63ffdce78d7cbb2ab8
+# For issuu_cw2.json these are the top 10 documents with most unique viewers (and their unique view count):
+# [('140224101516-e5c074c3404177518bab9d7a65fb578e', 26), 
+# ('140228202800-6ef39a241f35301a9a42cd0ed21e5fb0', 25), 
+# ('140228101942-d4c9bd33cc299cc53d584ca1a4bf15d9', 24), 
+# ('140227185725-ecdfa6bc363a0d30bd64535699f4a069', 17), 
+# ('140204115519-f5fa6ce8b288c9f10e0c8bc7e1a456a0', 16), 
+# ('140220182246-a781d17fb18fa53a7c0ae34242d71d3d', 13), 
+# ('130313161023-ee03f65a89c7406fa097abe281341b42', 11), 
+# ('121109150636-bdf13c63b3964e1494a82f6c144024e2', 11), 
+# ('131224090853-45a33eba6ddf71f348aef7557a86ca5f', 9), 
+# ('140224132818-2a89379e80cb7340d8504ad002fab76d', 8)]
+# ...This is irrelevant to the coursework specification but interesting for testing
+
+# Testing commands for command line usage:
+# python main.py -t 4 -f issuu_cw2.json
+# python main.py -u 232eeca785873d35 -d 131216030921-437624c61000e4b0cfabd4cc13f06ae1 -t 6 -f issuu_cw2.json
+# python main.py -d 140228202800-6ef39a241f35301a9a42cd0ed21e5fb0 -t 6 -f issuu_cw2.json
+# python main.py -d 140217151103-d89a87d94a00d7b7089338802ecddd65 -t 6 -f issuu_cw2.json
+# python main.py -t 7 -f issuu_cw2.json
 
 # ------------Imports------------
 import json
@@ -24,14 +38,20 @@ from PIL import ImageTk,Image
 # ------------Variables------------
 data = None
 filename = None
-E2 = None
-E3 = None
-L6 = None
-gui2 = None 
 opened_file = False
 opened_also_likes = False
 tkinter_open = False
 command_line_activated = False
+# gui variables
+E2 = None
+E3 = None
+L6 = None
+gui2 = None 
+gui = None 
+E1 = None 
+L2 = None 
+B = None
+B7 = None
 
 # ------------part 2: views by country/continent------------
 # part a for countries 
@@ -163,8 +183,9 @@ def get_documents_read_by_user(visitor_uuid):
         except Exception:
             pass
     return list(set(documents_read)) # because we dont want to count the same user reading the document more than once 
+
 # get_documents_view_count_by_visitors is a helper function for part c and d
-def get_documents_view_count_by_visitors(readers_list):
+def get_documents_view_count_by_visitors(visitors_list):
     # make list of all documents 
     # documents = [i['subject_doc_id'] for i in data] <----- makes KeyError because some values must be missing
     documents = []
@@ -176,7 +197,7 @@ def get_documents_view_count_by_visitors(readers_list):
     documents = list(set(documents))
     # make dictionary of documents with all values -1 to initialize
     documents_view_counts  = dict([(key, -1) for key in documents])
-    for reader in readers_list:
+    for reader in visitors_list:
         # iterate through the list and for each reader get a list of all the documents they have read
         documents_read_by_user = get_documents_read_by_user(reader)
         for document in documents_read_by_user:
@@ -263,7 +284,7 @@ def top_10_also_likes(document_uuid, visitor_uuid=None):
         values.append(documents_view_counts[doc])
         print("\nDocument Rank #"+str(i))
         print("Document with ID:"+str(doc))
-        print("Number of Views: "+str(documents_view_counts[doc]))
+        print("Number of Views by Unique Viewers: "+str(documents_view_counts[doc]))
         i = i+1
     # bar chart of number of views for the top 10 documents
     also_likes_shortened = [d[-4:] for d in also_likes]
@@ -279,30 +300,42 @@ def top_10_also_likes(document_uuid, visitor_uuid=None):
 def show_also_likes_graph(document_uuid, visitor_uuid):
     #create the graph
     graph = pydot.Dot("also_likes_graph", graph_type="digraph", bgcolor="white")
-    #get data from the part c function 
+    #get data from the part c function, these will be the document nodes
     documents = also_likes(document_uuid, visitor_uuid)
-    
+    # then get all of the readers of the input docuemnt, these will be the visitor nodes
+    visitors_of_input_document = get_readers_of_document(document_uuid)
+    # add the input document to documents because these are also likes documents so dont include the input document yet
     documents.append(document_uuid)
+    # make all the document nodes
     for doc in documents:
         #shorten document_uuid to last 4 characters
         doc_uuid = doc[-4:]
+        # if the doument uuid is the input document uuid then the node should be green, otherwise it is white
         if (doc == document_uuid):
             graph.add_node(pydot.Node(doc_uuid, shape="circle", fillcolor="green", style="filled"))
         else:
             graph.add_node(pydot.Node(doc_uuid, shape="circle", fillcolor="white", style="filled"))
 
-        visitors_of_doc = get_readers_of_document(doc)
-        for vis_uuid in visitors_of_doc:
-            #shorten the uuid to the last 4 characters 
-            uuid = vis_uuid[-4:]
-            if (vis_uuid == visitor_uuid):
-                graph.add_node(pydot.Node(uuid, shape="box", fillcolor="green", style="filled"))
-            else:
-                graph.add_node(pydot.Node(uuid, shape="box", fillcolor="white", style="filled"))
-            visitor_viewed_documents = get_documents_read_by_user(vis_uuid)
-            #loop through the documents and make nodes for each document
-            for doc_for_visitor in visitor_viewed_documents:
-                #add edge from visitor_uuid to document_uuid to show "also_likes" relationship 
+    # now make the visitor nodes and relationship edges
+    for vis_uuid in visitors_of_input_document:
+        #shorten the uuid to the last 4 characters 
+        uuid = vis_uuid[-4:]
+        # first make the visitor node
+        # if the visitor uuid is the input visitor uuid then the node should be green, otherwise it is white
+        if (vis_uuid == visitor_uuid):
+            graph.add_node(pydot.Node(uuid, shape="box", fillcolor="green", style="filled"))
+        else:
+            graph.add_node(pydot.Node(uuid, shape="box", fillcolor="white", style="filled"))
+        
+        # to make the relationship edge we need to see which documents this visitor viewed
+        documents_viewed_by_visitor = get_documents_read_by_user(vis_uuid)
+        for doc in documents_viewed_by_visitor:
+            # for each document the visitor has viewed check if it is in the also likes documents
+            # if so then make a relationship edge
+            if (documents.count(doc) != 0):
+                #shorten document_uuid to last 4 characters
+                doc_uuid = doc[-4:]
+                # add edge from visitor_uuid to document_uuid to show "also_likes" relationship 
                 graph.add_edge(pydot.Edge(uuid, doc_uuid, color="black"))
 
     #output image of the graph
@@ -312,18 +345,23 @@ def show_also_likes_graph(document_uuid, visitor_uuid):
     image.show()
 
 # ------------Helper Functions------------
-def test_also_likes():
-    docs = []
+# This function gets the top 10 documents from the opened file and their number of unique viewers and prints them
+def test_also_likes(): 
+    all_readers = []
     for entry in data:
         try:
-            doc_id = entry['subject_doc_id']
-            docs.append(doc_id)
+            user_id = entry['visitor_uuid']
+            all_readers.append(user_id)
         except Exception:
             pass
-    docs = list(set(docs))
-    for doc in docs:
-        top_10_also_likes(doc)
+    all_readers = list(set(all_readers))
+    documents_view_counts = get_documents_view_count_by_visitors(all_readers)
+    sort = sorted(documents_view_counts.items(), key=lambda kv: kv[1], reverse=True)
+    sort = list(sort)
+    print(sort[:10])
 
+# this function generates buttons to show the graphs for part 5 and 6 once the user has input a document uuid (and visitor uuid if desired)
+# the function also checks that the information inputted by the user is correct
 def make_and_show_buttons_also_likes():
     global E2
     global E3
@@ -348,6 +386,7 @@ def make_and_show_buttons_also_likes():
             B9.pack()
             opened_also_likes = True
 
+# this function opens the also likes facility
 def open_also_likes_facility():
     global filename
     global E2
@@ -367,15 +406,18 @@ def open_also_likes_facility():
     L5.pack()
     E3 = Entry(gui2, bd =2)
     E3.pack()
-    B7 = Button(gui2, text ="Find Also Likes", command=make_and_show_buttons_also_likes)
+    B7 = Button(gui2, text ="Enter", command=make_and_show_buttons_also_likes)
     B7.pack()
     L6 = Label(gui2, text="")
     L6.pack()
     gui2.mainloop()
 
+# this function generates the buttons for parts 1 to 4 once a file has been entered by the user using the gui
 def make_and_show_buttons():
     global opened_file
+    global B7
     if (opened_file == False):
+        B7.configure(text = "Update")
         B2 = Button(gui, text ="Show Views by Country Histogram", command=show_views_by_country_hist)
         B2.pack()
         B3 = Button(gui, text ="Show Views by Continent Histogram", command=show_views_by_continent_hist)
@@ -400,6 +442,7 @@ def openfile():
     else:
         labeltext = "Reading file: "+filename
         L2.configure(text=labeltext)
+        B.configure(text="Update File")
         if(open_file_and_set_data(filename)):
             make_and_show_buttons()
 
@@ -419,12 +462,8 @@ def open_file_and_set_data(fname):
         return False
 
 # ------------part 8: Command line usage------------
-# testing commands for command line usage:
-# python ipcw2.py -t 4 -f issuu_cw2.json
-# python ipcw2.py -u 232eeca785873d35 -d 131216030921-437624c61000e4b0cfabd4cc13f06ae1 -t 6 -f issuu_cw2.json
-# python ipcw2.py -d 140228202800-6ef39a241f35301a9a42cd0ed21e5fb0 -t 6 -f issuu_cw2.json
-# python ipcw2.py -d 140217151103-d89a87d94a00d7b7089338802ecddd65 -t 6 -f issuu_cw2.json
 def run_task(task_id, document_uuid=None, visitor_uuid=None):
+    global data
     if task_id == "2a":
         show_views_by_country_hist()
     elif task_id == "2b":
@@ -445,7 +484,15 @@ def run_task(task_id, document_uuid=None, visitor_uuid=None):
         top_10_also_likes(document_uuid, visitor_uuid)
     elif task_id == "6":
         show_also_likes_graph(document_uuid, visitor_uuid)
+    elif task_id == "7":
+        # task id 7 should run Task 6 and automatically launch a GUI with fields to input document and 
+        # (optionally user ids and show the resulting also-likes graph).
+        if data:
+            open_also_likes_facility()
 
+# if arguments have been entered then application uses command line interface and wont load the gui
+# so need to check if there is more than one argument
+# one argument is the file name
 if (len(sys.argv) != 1):
     command_line_activated = True
     document_uuid = None
@@ -478,7 +525,12 @@ if (len(sys.argv) != 1):
         run_task(task_id, document_uuid, visitor_uuid)
 
 # ------------part 7: GUI using tkinter------------
-if (command_line_activated == False):
+def generate_gui():
+    global gui
+    global E1
+    global L2
+    global B
+    global tkinter_open
     gui = Tk()
     gui.title("Document Tracker Data Analyzer")
     gui.geometry("600x400")
@@ -494,4 +546,6 @@ if (command_line_activated == False):
     L3.pack()
     tkinter_open = True
     gui.mainloop()
+if (command_line_activated == False):
+    generate_gui()
 # ---------------------------------------------------
