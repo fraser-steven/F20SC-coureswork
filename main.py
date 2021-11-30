@@ -281,7 +281,16 @@ def show_also_likes_graph(document_uuid, visitor_uuid):
     graph = pydot.Dot("also_likes_graph", graph_type="digraph", bgcolor="white")
     #get data from the part c function 
     documents = also_likes(document_uuid, visitor_uuid)
+    
+    documents.append(document_uuid)
     for doc in documents:
+        #shorten document_uuid to last 4 characters
+        doc_uuid = doc[-4:]
+        if (doc == document_uuid):
+            graph.add_node(pydot.Node(doc_uuid, shape="circle", fillcolor="green", style="filled"))
+        else:
+            graph.add_node(pydot.Node(doc_uuid, shape="circle", fillcolor="white", style="filled"))
+
         visitors_of_doc = get_readers_of_document(doc)
         for vis_uuid in visitors_of_doc:
             #shorten the uuid to the last 4 characters 
@@ -293,14 +302,9 @@ def show_also_likes_graph(document_uuid, visitor_uuid):
             visitor_viewed_documents = get_documents_read_by_user(vis_uuid)
             #loop through the documents and make nodes for each document
             for doc_for_visitor in visitor_viewed_documents:
-                #shorten document_uuid to last 4 characters
-                doc_uuid = doc_for_visitor[-4:]
-                if (doc_for_visitor == document_uuid):
-                    graph.add_node(pydot.Node(doc_uuid, shape="circle", fillcolor="green", style="filled"))
-                else:
-                    graph.add_node(pydot.Node(doc_uuid, shape="circle", fillcolor="white", style="filled"))
                 #add edge from visitor_uuid to document_uuid to show "also_likes" relationship 
                 graph.add_edge(pydot.Edge(uuid, doc_uuid, color="black"))
+
     #output image of the graph
     img_name = document_uuid + ".png"
     graph.write_png(img_name)
@@ -419,6 +423,7 @@ def open_file_and_set_data(fname):
 # python ipcw2.py -t 4 -f issuu_cw2.json
 # python ipcw2.py -u 232eeca785873d35 -d 131216030921-437624c61000e4b0cfabd4cc13f06ae1 -t 6 -f issuu_cw2.json
 # python ipcw2.py -d 140228202800-6ef39a241f35301a9a42cd0ed21e5fb0 -t 6 -f issuu_cw2.json
+# python ipcw2.py -d 140217151103-d89a87d94a00d7b7089338802ecddd65 -t 6 -f issuu_cw2.json
 def run_task(task_id, document_uuid=None, visitor_uuid=None):
     if task_id == "2a":
         show_views_by_country_hist()
