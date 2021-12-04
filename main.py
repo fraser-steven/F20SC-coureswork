@@ -263,7 +263,7 @@ def also_likes(document_uuid, visitor_uuid=None):
     return liked_documents_list
 
 #part d
-def top_10_also_likes(document_uuid, visitor_uuid=None):
+def top_10_also_likes(document_uuid, visitor_uuid=None, display_chart=None):
     if (visitor_uuid): 
         # check if visitor_uuid viewed document_uuid
         visited_docs = get_readers_of_document(document_uuid)
@@ -309,13 +309,14 @@ def top_10_also_likes(document_uuid, visitor_uuid=None):
         print("Number of Views by Unique Viewers: "+str(documents_view_counts[doc]))
         i = i+1
     # bar chart of number of views for the top 10 documents
-    also_likes_shortened = [d[-4:] for d in also_likes]
-    plt.grid(axis='y', alpha=0.75)
-    plt.xlabel('Document UUID')
-    plt.ylabel('Number of times the document was viewed.')
-    plt.title('Bar Chart Showing Also Likes for Top 10 Liked Documents')
-    plt.bar(also_likes_shortened, values)
-    plt.show()
+    if (display_chart):
+        also_likes_shortened = [d[-4:] for d in also_likes]
+        plt.grid(axis='y', alpha=0.75)
+        plt.xlabel('Document UUID')
+        plt.ylabel('Number of times the document was viewed.')
+        plt.title('Bar Chart Showing Also Likes for Top 10 Liked Documents')
+        plt.bar(also_likes_shortened, values)
+        plt.show()
     return also_likes
 
 # ------------part 6: also likes graph------------
@@ -323,7 +324,7 @@ def show_also_likes_graph(document_uuid, visitor_uuid):
     #create the graph
     graph = pydot.Dot("also_likes_graph", graph_type="digraph", bgcolor="white")
     #get data from the part c function, these will be the document nodes
-    documents = also_likes(document_uuid, visitor_uuid)
+    documents = top_10_also_likes(document_uuid, visitor_uuid, False)
     # then get all of the readers of the input docuemnt, these will be the visitor nodes
     visitors_of_input_document = get_readers_of_document(document_uuid)
     # add the input document to documents because these are also likes documents so dont include the input document yet
@@ -449,7 +450,7 @@ def make_and_show_buttons_also_likes():
     if (approved and (opened_also_likes==False)):
         B10 = Button(gui2, text ="Also Likes List", command=lambda:also_likes(document_uuid, visitor_uuid))
         B10.pack()
-        B8 = Button(gui2, text ="Also Likes Top 10 Documents", command=lambda:top_10_also_likes(document_uuid, visitor_uuid))
+        B8 = Button(gui2, text ="Also Likes Top 10 Documents", command=lambda:top_10_also_likes(document_uuid, visitor_uuid, true))
         B8.pack()
         B9 = Button(gui2, text ="Show Also Likes Graph", command=lambda:show_also_likes_graph(document_uuid, visitor_uuid))
         B9.pack()
@@ -559,7 +560,7 @@ def run_task(task_id, document_uuid=None, visitor_uuid=None):
     elif task_id == "5c":
         also_likes(document_uuid, visitor_uuid)
     elif task_id == "5d":
-        top_10_also_likes(document_uuid, visitor_uuid)
+        top_10_also_likes(document_uuid, true, visitor_uuid)
     elif task_id == "6":
         show_also_likes_graph(document_uuid, visitor_uuid)
     elif task_id == "7":
