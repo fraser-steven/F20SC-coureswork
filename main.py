@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # F20SC: Industrial Programming 
 # Coursework 2
 # Data Analysis of a Document Tracker
@@ -18,12 +19,12 @@
 # ('140224132818-2a89379e80cb7340d8504ad002fab76d', 8)]
 # ...This is irrelevant to the coursework specification but interesting for testing
 
-# Testing commands for command line usage:
-# python main.py -t 4 -f issuu_cw2.json
-# python main.py -u 232eeca785873d35 -d 131216030921-437624c61000e4b0cfabd4cc13f06ae1 -t 6 -f issuu_cw2.json
-# python main.py -d 140228202800-6ef39a241f35301a9a42cd0ed21e5fb0 -t 6 -f issuu_cw2.json
-# python main.py -d 140217151103-d89a87d94a00d7b7089338802ecddd65 -t 6 -f issuu_cw2.json
-# python main.py -t 7 -f issuu_cw2.json
+# Testing commands for command line usage with executable file:
+# ./cw2 -t 4 -f issuu_cw2.json
+# ./cw2 -u 232eeca785873d35 -d 131216030921-437624c61000e4b0cfabd4cc13f06ae1 -t 6 -f issuu_cw2.json
+# ./cw2 -d 140228202800-6ef39a241f35301a9a42cd0ed21e5fb0 -t 6 -f issuu_cw2.json
+# ./cw2 -d 140217151103-d89a87d94a00d7b7089338802ecddd65 -t 6 -f issuu_cw2.json
+# ./cw2 -t 7 -f issuu_cw2.json
 
 # ------------Imports------------
 import json
@@ -169,6 +170,9 @@ def show_reader_profile_info():
 # ------------part 5: also likes functionnality------------
 # part a
 def get_readers_of_document(document_uuid):
+    if (document_uuid == None):
+        print("Error... You did not provide a document UUID.")
+        exit(0)
     readers_of_document = [] 
     for entry in data:
         try:
@@ -181,6 +185,9 @@ def get_readers_of_document(document_uuid):
 
 # part b
 def get_documents_read_by_user(visitor_uuid):
+    if (visitor_uuid == None):
+        print("Error... You did not provide a visitor UUID.")
+        exit(0)
     documents_read = []
     for entry in data:
         try:
@@ -218,8 +225,8 @@ def also_likes(document_uuid, visitor_uuid=None):
         # check if visitor_uuid viewed document_uuid
         visited_docs = get_readers_of_document(document_uuid)
         if (visited_docs.count(visitor_uuid) == 0):
-            raise Exception("Error... Invalid parameters, visitor_uuid did not view document_uuid")
             print("Error... Invalid parameters, visitor_uuid did not view document_uuid")
+            exit(0)
     # get a list of all the readers of document_uuid
     readers_of_document = get_readers_of_document(document_uuid)
     # use the helper function explained above to get a dictionary of all the documents 
@@ -251,8 +258,8 @@ def top_10_also_likes(document_uuid, visitor_uuid=None):
         # check if visitor_uuid viewed document_uuid
         visited_docs = get_readers_of_document(document_uuid)
         if (visited_docs.count(visitor_uuid) == 0):
-            raise Exception("Error... Invalid parameters, visitor_uuid did not view document_uuid")
             print("Error... Invalid parameters, visitor_uuid did not view document_uuid")
+            exit(0)
 
     # get a list of all the readers of document_uuid
     readers_of_document = get_readers_of_document(document_uuid)
@@ -513,7 +520,8 @@ def open_file_and_set_data(fname):
             hide_file_page_buttons()
             L2.configure(text="Error...File not found")
         else:
-            raise Exception("Error...File not found")
+            print("Error...File not found")
+            exit(0)
         return False
 
 # ------------part 8: Command line usage------------
@@ -544,19 +552,21 @@ def run_task(task_id, document_uuid=None, visitor_uuid=None):
         # (optionally user ids and show the resulting also-likes graph).
         if data:
             open_also_likes_facility()
+    else:
+        print("Error... You did not enter a valid task ID. \nPlease try again...")
 
 # if arguments have been entered then application uses command line interface and wont load the gui
-# so need to check if there is more than one argument
-# one argument is the file name
+# so need to check if there are arguments
 if (len(sys.argv) != 1):
     command_line_activated = True
     document_uuid = None
     visitor_uuid = None
     task_id = None
-    arg_count = len(sys.argv)-1
+    arg_count = len(sys.argv) -1
     # there should be an even number of arguments exclusing the name of the python file
     if ((arg_count%2) != 0):
-        raise Exception('A problem has been detected with the arguments you have input. \nPlease try again...')
+        print('A problem has been detected with the arguments you have input. \nPlease try again...')
+        exit(0)
     index = 0
     while (index < arg_count): # set the variable values
         # possibilities: be -u -d -t -f
@@ -572,12 +582,16 @@ if (len(sys.argv) != 1):
         elif (option == "-f"):
             filename = sys.argv[index]
         else:
-            print(option)
-            raise Exception('A problem has been detected with the arguments you have input. \nPlease try again...')
+            print('A problem has been detected with the arguments you have input. \nPlease try again...')
+            exit(0)
     # we need to read the file
-    if (open_file_and_set_data(filename)):
-        # now run the task that was specified
-        run_task(task_id, document_uuid, visitor_uuid)
+    if (filename): # if a file has been specified
+        if (open_file_and_set_data(filename)):
+            # now run the task that was specified
+            run_task(task_id, document_uuid, visitor_uuid)
+    else:
+        print('Error... You did not enter a filename to specify a file. \nA filename is needed to run any task. \nUse -f followed by the filename to specify a file. \nPlease try again...')
+        exit(0)
 
 # ------------part 7: GUI using tkinter------------
 def generate_gui():
