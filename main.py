@@ -19,12 +19,12 @@
 # ('140224132818-2a89379e80cb7340d8504ad002fab76d', 8)]
 # ...This is irrelevant to the coursework specification but interesting for testing
 
-# Testing commands for command line usage with executable file:
-# ./cw2 -t 4 -f issuu_cw2.json
-# ./cw2 -u 232eeca785873d35 -d 131216030921-437624c61000e4b0cfabd4cc13f06ae1 -t 6 -f issuu_cw2.json
-# ./cw2 -d 140228202800-6ef39a241f35301a9a42cd0ed21e5fb0 -t 6 -f issuu_cw2.json
-# ./cw2 -d 140217151103-d89a87d94a00d7b7089338802ecddd65 -t 6 -f issuu_cw2.json
-# ./cw2 -t 7 -f issuu_cw2.json
+# Testing commands for command line usage:
+# python main.py -t 4 -f issuu_cw2.json
+# python main.py -u 232eeca785873d35 -d 131216030921-437624c61000e4b0cfabd4cc13f06ae1 -t 6 -f issuu_cw2.json
+# python main.py -d 140228202800-6ef39a241f35301a9a42cd0ed21e5fb0 -t 6 -f issuu_cw2.json
+# python main.py -d 140217151103-d89a87d94a00d7b7089338802ecddd65 -t 6 -f issuu_cw2.json
+# python main.py -t 7 -f issuu_cw2.json
 
 # ------------Imports------------
 import json
@@ -174,10 +174,17 @@ def get_readers_of_document(document_uuid):
         print("Error... You did not provide a document UUID.")
         exit(0)
     readers_of_document = [] 
+    # event_types  = ['continuation_load', 'impression', 'pageread', 'read', 'share', 'pagereadtime', 'click']
+    # cause_types = ['embed', 'archive', 'ad', 'impression', 'related', 'page']
+    # subject_types = ['doc', 'infobox', 'link']
+    # env_types = ['website', 'reader', 'stream']
+    # env_names = ['sidebarmorefromauthor', 'search', 'mysubscriptions', 'stack', 'explore', 'mystackssingle', 'curated', 'related', 'myfeed', 'profile']
     for entry in data:
         try:
-            if (entry['subject_doc_id'] == document_uuid):
-                readers_of_document.append(entry['visitor_uuid'])
+            if ((entry['subject_doc_id'] == document_uuid) and (entry["env_type"] == "reader") and (entry["event_type"] == "read")):
+                vis_uuid = entry['visitor_uuid']
+                if (vis_uuid):
+                    readers_of_document.append(vis_uuid)
         # if subject_doc_id or env_doc_id was missing just pass
         except Exception:
             pass
@@ -191,7 +198,7 @@ def get_documents_read_by_user(visitor_uuid):
     documents_read = []
     for entry in data:
         try:
-            if (entry['visitor_uuid'] == visitor_uuid):
+            if ((entry['visitor_uuid'] == visitor_uuid) and (entry["env_type"] == "reader") and (entry["event_type"] == "read")):
                 doc_id = entry['subject_doc_id']
                 if (doc_id):
                     documents_read.append(doc_id)
@@ -229,6 +236,9 @@ def also_likes(document_uuid, visitor_uuid=None):
             exit(0)
     # get a list of all the readers of document_uuid
     readers_of_document = get_readers_of_document(document_uuid)
+    if (visitor_uuid): 
+        # we only want documents liked by OTHER users who like this document
+        readers_of_document.remove(visitor_uuid)
     # use the helper function explained above to get a dictionary of all the documents 
     # with values of how many times they were read by the specified readers
     documents_view_counts = get_documents_view_count_by_visitors(readers_of_document)
@@ -263,9 +273,11 @@ def top_10_also_likes(document_uuid, visitor_uuid=None):
 
     # get a list of all the readers of document_uuid
     readers_of_document = get_readers_of_document(document_uuid)
+    if (visitor_uuid): 
+        # we only want documents liked by OTHER users who like this document
+        readers_of_document.remove(visitor_uuid)
     # use the helper function explained above to get a dictionary of all the documents 
     # with values of how many times they were read by the specified readers
-    readers_of_document = list(set(readers_of_document))
     documents_view_counts = get_documents_view_count_by_visitors(readers_of_document)
     # sort documents from most read to least read
     sort = sorted(documents_view_counts.items(), key=lambda kv: kv[1], reverse=True)
@@ -330,23 +342,26 @@ def show_also_likes_graph(document_uuid, visitor_uuid):
     for vis_uuid in visitors_of_input_document:
         #shorten the uuid to the last 4 characters 
         uuid = vis_uuid[-4:]
-        # first make the visitor node
-        # if the visitor uuid is the input visitor uuid then the node should be green, otherwise it is white
-        if (vis_uuid == visitor_uuid):
-            graph.add_node(pydot.Node(uuid, shape="box", fillcolor="green", style="filled"))
-        else:
-            graph.add_node(pydot.Node(uuid, shape="box", fillcolor="white", style="filled"))
-        
+
         # to make the relationship edge we need to see which documents this visitor viewed
         documents_viewed_by_visitor = get_documents_read_by_user(vis_uuid)
-        for doc in documents_viewed_by_visitor:
-            # for each document the visitor has viewed check if it is in the also likes documents
-            # if so then make a relationship edge
-            if (documents.count(doc) != 0):
-                #shorten document_uuid to last 4 characters
-                doc_uuid = doc[-4:]
-                # add edge from visitor_uuid to document_uuid to show "also_likes" relationship 
-                graph.add_edge(pydot.Edge(uuid, doc_uuid, color="black"))
+        only_document_uuid = [document_uuid]
+        if (documents_viewed_by_visitor != only_document_uuid):
+            # first make the visitor node
+            # if the visitor uuid is the input visitor uuid then the node should be green, otherwise it is white
+            if (vis_uuid == visitor_uuid):
+                graph.add_node(pydot.Node(uuid, shape="box", fillcolor="green", style="filled"))
+            else:
+                graph.add_node(pydot.Node(uuid, shape="box", fillcolor="white", style="filled"))
+            
+            for doc in documents_viewed_by_visitor:
+                # for each document the visitor has viewed check if it is in the also likes documents
+                # if so then make a relationship edge
+                if (documents.count(doc) != 0):
+                    #shorten document_uuid to last 4 characters
+                    doc_uuid = doc[-4:]
+                    # add edge from visitor_uuid to document_uuid to show "also_likes" relationship 
+                    graph.add_edge(pydot.Edge(uuid, doc_uuid, color="black"))
 
     #output image of the graph
     img_name = document_uuid + ".png"
