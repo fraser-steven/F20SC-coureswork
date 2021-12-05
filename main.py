@@ -207,27 +207,38 @@ def get_documents_read_by_user(visitor_uuid):
             pass
     return list(set(documents_read)) # because we dont want to count the same user reading the document more than once 
 
-# get_documents_view_count_by_visitors is a helper function for part c and d
-def get_documents_view_count_by_visitors(visitors_list):
-    # make list of all documents 
-    # documents = [i['subject_doc_id'] for i in data] <----- makes KeyError because some values must be missing
-    documents = get_unique_documents_in_file()
-    # make dictionary of documents with all values -1 to initialize
-    documents_view_counts  = dict([(key, -1) for key in documents])
-    for reader in visitors_list:
-        # iterate through the list and for each reader get a list of all the documents they have read
-        documents_read_by_user = get_documents_read_by_user(reader)
-        for document in documents_read_by_user:
-            # iterate through the documents they have read and store the view counts in the dictionary
-            if (documents_view_counts[document] == -1): 
-                documents_view_counts[document] = 1
-            else:
-                documents_view_counts[document] = documents_view_counts[document]+1
-    # return the unsorted dictionary
-    return documents_view_counts
+# not used but could be used for testing
+# LEAST to most views sorting function
+def sort_least_to_most_views(documents_list):
+    documents_view_counts  = dict([(key, -1) for key in documents_list])
+    for document in documents_list:
+        readers_count = len(get_readers_of_document(document))
+        documents_view_counts[document] = readers_count
+    
+    # sort documents from least read to most read
+    sort = sorted(documents_view_counts.items(), key=lambda kv: kv[1], reverse=False)
+    sort = list(sort)
+    # make a list of only the document uuids 
+    sorted_list = [document[0] for document in sort]
+    return sorted_list
 
+# used for part d
+# MOST to least views sorting function
+def sort_most_to_least_views(documents_list):
+    documents_view_counts  = dict([(key, -1) for key in documents_list])
+    for document in documents_list:
+        readers_count = len(get_readers_of_document(document))
+        documents_view_counts[document] = readers_count
+    
+    # sort documents from most read to least read
+    sort = sorted(documents_view_counts.items(), key=lambda kv: kv[1], reverse=True)
+    sort = list(sort)
+    # make a list of only the document uuids 
+    sorted_list = [document[0] for document in sort]
+    return sorted_list
+    
 # part c
-def also_likes(document_uuid, visitor_uuid=None):
+def also_likes(document_uuid, visitor_uuid=None, sorting_function=None):
     if (visitor_uuid): 
         # check if visitor_uuid viewed document_uuid
         visited_docs = get_readers_of_document(document_uuid)
@@ -239,19 +250,28 @@ def also_likes(document_uuid, visitor_uuid=None):
     if (visitor_uuid): 
         # we only want documents liked by OTHER users who like this document
         readers_of_document.remove(visitor_uuid)
-    # use the helper function explained above to get a dictionary of all the documents 
-    # with values of how many times they were read by the specified readers
-    documents_view_counts = get_documents_view_count_by_visitors(readers_of_document)
-    documents_view_counts = list(documents_view_counts.items())
-    # make a list of only the document uuids 
-    liked_documents_list = [document[0] for document in documents_view_counts if (document[1] != -1)]
-    # coursework spec says "sorted by the sorting function parameter"
-    liked_documents_list.sort()
+
+    # find also liked documents
+    liked_documents_list = []
+    for reader in readers_of_document:
+        # for every reader find all the documents they read and add them to the list
+        documents = get_documents_read_by_user(reader)
+        for doc in documents:
+            liked_documents_list.append(doc)
+    # only keep unique documents
+    list(set(liked_documents_list))
+
     # make sure document_uuid is not in the list
     try:
         liked_documents_list.remove(document_uuid) 
     except Exception: # if the document is not in this list this will throw ValueError
         pass
+
+    # coursework spec says "sorted by the sorting function parameter"
+    # sort with the sorting_function if one has been provided
+    if sorting_function:
+        liked_documents_list = sorting_function(liked_documents_list)
+
     # printing stuff to show results in terminal
     likes_count = len(liked_documents_list)
     if (likes_count>0):
@@ -262,62 +282,13 @@ def also_likes(document_uuid, visitor_uuid=None):
         print("\nNo Also Liked Documents Found...")
     return liked_documents_list
 
-#part d
+# part d
 def top_10_also_likes(document_uuid, visitor_uuid=None, display_chart=None):
-    if (visitor_uuid): 
-        # check if visitor_uuid viewed document_uuid
-        visited_docs = get_readers_of_document(document_uuid)
-        if (visited_docs.count(visitor_uuid) == 0):
-            print("Error... Invalid parameters, visitor_uuid did not view document_uuid")
-            exit(0)
-
-    # get a list of all the readers of document_uuid
-    readers_of_document = get_readers_of_document(document_uuid)
-    if (visitor_uuid): 
-        # we only want documents liked by OTHER users who like this document
-        readers_of_document.remove(visitor_uuid)
-    # use the helper function explained above to get a dictionary of all the documents 
-    # with values of how many times they were read by the specified readers
-    documents_view_counts = get_documents_view_count_by_visitors(readers_of_document)
-    # sort documents from most read to least read
-    sort = sorted(documents_view_counts.items(), key=lambda kv: kv[1], reverse=True)
-    sort = list(sort)
-    # make a list of only the document uuids 
-    liked_documents_list = [document[0] for document in sort if (document[1] != -1)]
-    # make sure document_uuid is not in the list
-    try:
-        liked_documents_list.remove(document_uuid)
-    except Exception: # if the document is not in this list this will throw ValueError
-        pass
-    # get the top 10
-    also_likes = liked_documents_list[:10]
-    no_also_likes = len(also_likes)
-    # printing stuff to show results in terminal
-    if (no_also_likes == 10): 
-        print("\nTop 10 Documents and their Number of Views: ")
-    elif (no_also_likes>0): 
-        print("\nOnly "+str(no_also_likes)+" Also Likes documents were found.")
-        print("Top "+str(no_also_likes)+" Documents and their Number of Views: ")
-    else: # no results
-        print("\nNo Also Liked Documents Found...")
-    i=1
-    values = []
-    for doc in also_likes:
-        values.append(documents_view_counts[doc])
-        print("\nDocument Rank #"+str(i))
-        print("Document with ID:"+str(doc))
-        print("Number of Views by Unique Viewers: "+str(documents_view_counts[doc]))
-        i = i+1
-    # bar chart of number of views for the top 10 documents
-    if (display_chart):
-        also_likes_shortened = [d[-4:] for d in also_likes]
-        plt.grid(axis='y', alpha=0.75)
-        plt.xlabel('Document UUID')
-        plt.ylabel('Number of times the document was viewed.')
-        plt.title('Bar Chart Showing Also Likes for Top 10 Liked Documents')
-        plt.bar(also_likes_shortened, values)
-        plt.show()
-    return also_likes
+    # using sorting function: sort_most_to_least_views
+    # and also using also_likes function from part c
+    also_likes_list = also_likes(document_uuid, visitor_uuid, sort_most_to_least_views)
+    # return only top 10 results
+    return also_likes_list[:10]
 
 # ------------part 6: also likes graph------------
 def show_also_likes_graph(document_uuid, visitor_uuid):
@@ -371,6 +342,25 @@ def show_also_likes_graph(document_uuid, visitor_uuid):
     image.show()
 
 # ------------Helper Functions------------
+# function useful for testing
+def get_documents_view_count_by_visitors(visitors_list):
+    # make list of all documents 
+    # documents = [i['subject_doc_id'] for i in data] <----- makes KeyError because some values must be missing
+    documents = get_unique_documents_in_file()
+    # make dictionary of documents with all values -1 to initialize
+    documents_view_counts  = dict([(key, -1) for key in documents])
+    for reader in visitors_list:
+        # iterate through the list and for each reader get a list of all the documents they have read
+        documents_read_by_user = get_documents_read_by_user(reader)
+        for document in documents_read_by_user:
+            # iterate through the documents they have read and store the view counts in the dictionary
+            if (documents_view_counts[document] == -1): 
+                documents_view_counts[document] = 1
+            else:
+                documents_view_counts[document] = documents_view_counts[document]+1
+    # return the unsorted dictionary
+    return documents_view_counts
+
 # This function gets the top 10 documents from the opened file and their number of unique viewers and prints them
 def test_also_likes(): 
     all_readers = []
@@ -396,6 +386,7 @@ def hide_also_likes_buttons():
         B10.pack_forget()
         opened_also_likes = False
 
+# this function gets a list of all unique document uuids in the file
 def get_unique_documents_in_file():
     documents = []
     for entry in data:
