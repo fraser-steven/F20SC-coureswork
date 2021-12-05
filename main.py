@@ -65,8 +65,11 @@ B10 = None
 
 # ------------part 2: views by country/continent------------
 # part a for countries 
-def show_views_by_country_hist():
-    count = Counter(visitor['visitor_country'] for visitor in data)
+def show_views_by_country_hist(document_uuid=None):
+    if (document_uuid):
+        count = Counter(entry['visitor_country'] for entry in data if (entry['subject_doc_id'] == document_uuid))
+    else:
+        count = Counter(visitor['visitor_country'] for visitor in data)
     plt.grid(axis='y', alpha=0.75)
     plt.xlabel('Country')
     plt.ylabel('Frequency')
@@ -75,8 +78,11 @@ def show_views_by_country_hist():
     plt.show() 
 
 # part b for continent
-def show_views_by_continent_hist():
-    count = Counter(visitor['visitor_country'] for visitor in data)
+def show_views_by_continent_hist(document_uuid=None):
+    if (document_uuid):
+        count = Counter(entry['visitor_country'] for entry in data if (entry['subject_doc_id'] == document_uuid))
+    else:
+        count = Counter(visitor['visitor_country'] for visitor in data)
     continents = []
     for i in count:
         try:
@@ -535,9 +541,9 @@ def open_file_and_set_data(fname):
 def run_task(task_id, document_uuid=None, visitor_uuid=None):
     global data
     if task_id == "2a":
-        show_views_by_country_hist()
+        show_views_by_country_hist(document_uuid)
     elif task_id == "2b":
-        show_views_by_continent_hist()
+        show_views_by_continent_hist(document_uuid)
     elif task_id == "3a":
         show_views_by_browser_a()
     elif task_id == "3b":
@@ -551,7 +557,7 @@ def run_task(task_id, document_uuid=None, visitor_uuid=None):
     elif task_id == "5c":
         also_likes(document_uuid, visitor_uuid)
     elif task_id == "5d":
-        top_10_also_likes(document_uuid, true, visitor_uuid)
+        top_10_also_likes(document_uuid, True, visitor_uuid)
     elif task_id == "6":
         show_also_likes_graph(document_uuid, visitor_uuid)
     elif task_id == "7":
