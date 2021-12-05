@@ -110,7 +110,7 @@ def show_views_by_browser_b():
     count = Counter(visitor['visitor_useragent'] for visitor in data)
     browsers = []
     for i in count:
-        browser = i.split(' ')[0]
+        browser = i.split('/')[0]
         browsers.append(browser)
     output = Counter(browsers)
     plt.grid(axis='y', alpha=0.75)
